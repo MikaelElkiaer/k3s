@@ -146,7 +146,7 @@ func (h *handler) toBindPorts() (map[int]int, error) {
 				}
 
 				if port.Port != 0 {
-					if port.Port <= unprivilegedPortStart {
+					if port.Port < unprivilegedPortStart {
 						toBindPorts[10000+int(port.Port)] = int(port.Port)
 					} else {
 						toBindPorts[int(port.Port)] = int(port.Port)
