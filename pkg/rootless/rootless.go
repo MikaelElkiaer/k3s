@@ -94,7 +94,7 @@ func validateSysctl() error {
 		"net.ipv4.ip_forward": "1",
 	}
 	for key, expectedValue := range expected {
-		if actualValue, err := readSysctl(key); err == nil {
+		if actualValue, err := ReadSysctl(key); err == nil {
 			if expectedValue != actualValue {
 				return errors.Errorf("expected sysctl value %q to be %q, got %q; try adding \"%s=%s\" to /etc/sysctl.conf and running `sudo sysctl --system`",
 					key, expectedValue, actualValue, key, expectedValue)
@@ -104,7 +104,7 @@ func validateSysctl() error {
 	return nil
 }
 
-func readSysctl(key string) (string, error) {
+func ReadSysctl(key string) (string, error) {
 	p := "/proc/sys/" + strings.ReplaceAll(key, ".", "/")
 	b, err := os.ReadFile(p)
 	if err != nil {

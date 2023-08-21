@@ -5,6 +5,7 @@ package rootlessports
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/k3s-io/k3s/pkg/rootless"
@@ -138,13 +139,14 @@ func (h *handler) toBindPorts() (map[int]int, error) {
 				continue
 			}
 
+			unprivilegedPortStart := determineUnprivilegedPortStart()
 			for _, port := range svc.Spec.Ports {
 				if port.Protocol != v1.ProtocolTCP {
 					continue
 				}
 
 				if port.Port != 0 {
-					if port.Port <= 1024 {
+					if port.Port <= unprivilegedPortStart {
 						toBindPorts[10000+int(port.Port)] = int(port.Port)
 					} else {
 						toBindPorts[int(port.Port)] = int(port.Port)
@@ -155,4 +157,16 @@ func (h *handler) toBindPorts() (map[int]int, error) {
 	}
 
 	return toBindPorts, nil
+}
+
+func determineUnprivilegedPortStart() int32 {
+	port, err := rootless.ReadSysctl("net.ipv4.ip_unprivileged_port_start")
+	if err != nil {
+		port, err := strconv.ParseInt(port, 10, 8)
+		if err != nil {
+			return int32(port)
+		}
+	}
+
+	return 1024
 }
