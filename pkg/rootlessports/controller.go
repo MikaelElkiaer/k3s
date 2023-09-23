@@ -160,13 +160,21 @@ func (h *handler) toBindPorts() (map[int]int, error) {
 }
 
 func determineUnprivilegedPortStart() int32 {
-	port, err := rootless.ReadSysctl("net.ipv4.ip_unprivileged_port_start")
+	var port int32 = 1024
+	unprivilegedPortStart, err := rootless.ReadSysctl("net.ipv4.ip_unprivileged_port_start")
 	if err != nil {
-		port, err := strconv.ParseInt(port, 10, 8)
+		logrus.Debugf("Found net.ipv4.ip_unprivileged_port_start=%s", unprivilegedPortStart)
+		parsedPort, err := strconv.ParseInt(unprivilegedPortStart, 10, 8)
 		if err != nil {
-			return int32(port)
+			port = int32(parsedPort)
+		} else {
+			logrus.Errorf("Error when parsing port: %s", err)
 		}
+	} else {
+		logrus.Errorf("Error when retrieving net.ipv4.ip_unprivileged_port_start: %s", err)
 	}
 
-	return 1024
+	logrus.Infof("Using port number %d unprivilged port start", port)
+
+	return port
 }
